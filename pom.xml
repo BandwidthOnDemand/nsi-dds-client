@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>net.es.nsi</groupId>
+    <artifactId>nsi-dds-client</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <jersey.version>2.11</jersey.version>
+    </properties>
+
+    <repositories>
+        <repository>
+            <id>sonatype-snapshots</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+        </repository>
+    </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>onejar-maven-plugin.googlecode.com</id>
+            <url>http://onejar-maven-plugin.googlecode.com/svn/mavenrepo</url>
+        </pluginRepository>
+    </pluginRepositories>
+
+    <dependencies>
+        <!-- Jersey for JAX-RS -->
+        <dependency>
+            <groupId>org.glassfish.jersey.media</groupId>
+            <artifactId>jersey-media-moxy</artifactId>
+            <version>${jersey.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.glassfish.jersey.ext</groupId>
+            <artifactId>jersey-proxy-client</artifactId>
+            <version>${jersey.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.glassfish.jersey.core</groupId>
+            <artifactId>jersey-client</artifactId>
+            <version>${jersey.version}</version>
+        </dependency>
+
+        <!-- Google JSON parsers for reading configuration data from files. -->
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.2.3</version>
+        </dependency>
+
+        <!-- For FileUtils -->
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>1.3.2</version>
+        </dependency>
+
+        <!-- Quartz is dependent on this. -->
+        <dependency>
+            <groupId>commons-collections</groupId>
+            <artifactId>commons-collections</artifactId>
+            <version>3.2</version>
+            <scope>runtime</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>commons-cli</groupId>
+            <artifactId>commons-cli</artifactId>
+            <version>1.2</version>
+        </dependency>
+
+        <!-- For HTTP header utilities. -->
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.3-beta2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.googlecode.cliche</groupId>
+            <artifactId>cliche</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.1</version>
+                <configuration>
+                    <source>1.7</source>
+                    <target>1.7</target>
+                    <compilerArgument>-Xlint:deprecation</compilerArgument>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>jaxb2-maven-plugin</artifactId>
+                <version>1.5</version>
+                <executions>
+                  <execution>
+                    <id>management</id>
+                    <goals>
+                        <goal>xjc</goal>
+                    </goals>
+                    <configuration>
+                        <schemaDirectory>${basedir}/src/main/xsd</schemaDirectory>
+                        <schemaFiles>pce-management.xsd</schemaFiles>
+                        <packageName>net.es.nsi.dds.management.jaxb</packageName>
+                        <staleFile>${project.build.directory}/jaxb2/.mgntXjcStaleFlag</staleFile>
+                        <clearOutputDir>false</clearOutputDir>
+                    </configuration>
+                  </execution>
+                  <execution>
+                    <id>discovery</id>
+                    <goals>
+                        <goal>xjc</goal>
+                    </goals>
+                    <configuration>
+                        <schemaDirectory>${basedir}/src/main/xsd</schemaDirectory>
+                        <bindingDirectory>${basedir}/src/main/xsd</bindingDirectory>
+                        <bindingFiles>discovery.xjb</bindingFiles>
+                        <schemaFiles>dds-configuration.xsd, ogf_nsi_discovery_protocol_v1_0.xsd, ogf_nsi_discovery_nsa_v1_0.xsd, gnsbod.xsd, ogf_nsi_services_definition_v2_0.xsd, nmlbase.xsd, nsi-ext.xsd</schemaFiles>
+                        <packageName>net.es.nsi.dds.api.jaxb</packageName>
+                        <staleFile>${project.build.directory}/jaxb2/.discoveryXjcStaleFlag</staleFile>
+                        <clearOutputDir>false</clearOutputDir>
+                    </configuration>
+                  </execution>
+                </executions>
+            </plugin>
+
+            <!-- puts all code & libraries in one jar -->
+            <plugin>
+                <groupId>org.dstovall</groupId>
+                <artifactId>onejar-maven-plugin</artifactId>
+                <version>1.4.4</version>
+                <executions>
+                    <execution>
+                        <id>DDSClient</id>
+                        <configuration>
+                            <mainClass>net.es.nsi.dds.client.DdsClient</mainClass>
+                            <classifier>onejar</classifier>
+                            <filename>ddscmd.jar</filename>
+                        </configuration>
+                        <goals>
+                            <goal>one-jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-clean-plugin</artifactId>
+                <version>2.5</version>
+                <configuration>
+                  <filesets>
+                    <fileset>
+                      <directory>${basedir}/var</directory>
+                    </fileset>
+                  </filesets>
+                </configuration>
+              </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>examples-source-zip</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-assembly-plugin</artifactId>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+</project>
