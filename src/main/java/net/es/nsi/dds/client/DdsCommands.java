@@ -67,66 +67,63 @@ public class DdsCommands implements ShellDependent {
         else {
             System.out.println("pong!");
         }
+        response.close();
     }
 
     @Command(description="List available resource types.")
     public void ls() {
         Response response = path.queryParam("summary", "true").request().accept(NsiConstants.NSI_DDS_V1_XML).get();
-        if (response.getStatus() != Response.Status.OK.getStatusCode()) {
-            System.err.println("list failed (" + response.getStatus() + ")");
-            return;
-        }
+        if (response.getStatus() == Response.Status.OK.getStatusCode()) {
+            CollectionType collection;
+            try (ChunkedInput<CollectionType> chunkedInput = response.readEntity(new GenericType<ChunkedInput<CollectionType>>() {})) {
+                collection = chunkedInput.read();
+            }
 
-        final ChunkedInput<CollectionType> chunkedInput = response.readEntity(new GenericType<ChunkedInput<CollectionType>>() {});
-        if (chunkedInput == null) {
-            System.err.println("list returned empty results.");
-            return;
-        }
-
-        CollectionType collection = chunkedInput.read();
-
-        if (collection != null) {
-            System.out.println("/subscriptions (" + collection.getSubscriptions().getSubscription().size() + ")");
-            System.out.println("/local (" + collection.getLocal().getDocument().size() + ")");
-            System.out.println("/documents (" + collection.getDocuments().getDocument().size() + ")");
+            if (collection != null) {
+                System.out.println("/subscriptions (" + collection.getSubscriptions().getSubscription().size() + ")");
+                System.out.println("/local (" + collection.getLocal().getDocument().size() + ")");
+                System.out.println("/documents (" + collection.getDocuments().getDocument().size() + ")");
+            }
+            else {
+                System.err.println("list returned empty results.");
+            }
         }
         else {
-            System.err.println("list returned empty results.");
+            System.err.println("list failed (" + response.getStatus() + ")");
         }
+        response.close();
     }
 
     @Command(description="List summary information for all subscriptions and documents.")
     public void list() {
         Response response = path.queryParam("summary", "true").request().accept(NsiConstants.NSI_DDS_V1_XML).get();
-        if (response.getStatus() != Response.Status.OK.getStatusCode()) {
+        if (response.getStatus() == Response.Status.OK.getStatusCode()) {
+            CollectionType collection;
+            try (ChunkedInput<CollectionType> chunkedInput = response.readEntity(new GenericType<ChunkedInput<CollectionType>>() {})) {
+                collection = chunkedInput.read();
+            }
+
+            if (collection != null) {
+                System.out.println("/subscriptions (" + collection.getSubscriptions().getSubscription().size() + ")");
+                for (SubscriptionType subscription : collection.getSubscriptions().getSubscription()) {
+                    System.out.println("    id=" + subscription.getId() + "; requesterId=" + subscription.getRequesterId() + "; version=" + subscription.getVersion().toString());
+                }
+
+                System.out.println("/local (" + collection.getLocal().getDocument().size() + ")");
+                for (DocumentType document : collection.getLocal().getDocument()) {
+                    System.out.println("    nsa=" + document.getNsa() + "; type=" + document.getType() + "; id=" + document.getId() + "; version=" + document.getVersion().toString());
+                }
+
+                System.out.println("/documents (" + collection.getDocuments().getDocument().size() + ")");
+                for (DocumentType document : collection.getDocuments().getDocument()) {
+                    System.out.println("    nsa=" + document.getNsa() + "; type=" + document.getType() + "; id=" + document.getId() + "; version=" + document.getVersion().toString());
+                }
+            }
+        }
+        else {
             System.err.println("list failed (" + response.getStatus() + ")");
-            return;
         }
-
-        final ChunkedInput<CollectionType> chunkedInput = response.readEntity(new GenericType<ChunkedInput<CollectionType>>() {});
-        if (chunkedInput == null) {
-            System.err.println("list returned empty results.");
-            return;
-        }
-
-        CollectionType collection = chunkedInput.read();
-
-        if (collection != null) {
-            System.out.println("/subscriptions (" + collection.getSubscriptions().getSubscription().size() + ")");
-            for (SubscriptionType subscription : collection.getSubscriptions().getSubscription()) {
-                System.out.println("    id=" + subscription.getId() + "; requesterId=" + subscription.getRequesterId() + "; version=" + subscription.getVersion().toString());
-            }
-
-            System.out.println("/local (" + collection.getLocal().getDocument().size() + ")");
-            for (DocumentType document : collection.getLocal().getDocument()) {
-                System.out.println("    nsa=" + document.getNsa() + "; type=" + document.getType() + "; id=" + document.getId() + "; version=" + document.getVersion().toString());
-            }
-
-            System.out.println("/documents (" + collection.getDocuments().getDocument().size() + ")");
-            for (DocumentType document : collection.getDocuments().getDocument()) {
-                System.out.println("    nsa=" + document.getNsa() + "; type=" + document.getType() + "; id=" + document.getId() + "; version=" + document.getVersion().toString());
-            }
-        }
+        response.close();
     }
 
     @Command(description="Set resource context.")
@@ -142,13 +139,11 @@ public class DdsCommands implements ShellDependent {
                 ShellFactory.createSubshell(resource, theShell, target.getUri().toString(), new Documents(target)).commandLoop();
             }
             else if ("local".equalsIgnoreCase(resource)) {
-                final ChunkedInput<DocumentListType> chunkedInput = response.readEntity(new GenericType<ChunkedInput<DocumentListType>>() {});
-                if (chunkedInput == null) {
-                    System.err.println("cd failed");
-                    return;
+                DocumentListType documents;
+                try (ChunkedInput<DocumentListType> chunkedInput = response.readEntity(new GenericType<ChunkedInput<DocumentListType>>() {})) {
+                    documents = chunkedInput.read();
                 }
 
-                DocumentListType documents = chunkedInput.read();
                 if (documents != null && !documents.getDocument().isEmpty()) {
                     ShellFactory.createSubshell(resource, theShell, target.getUri().toString(), new Nsa(documents.getDocument().get(0).getNsa(), target)).commandLoop();
                 }
@@ -163,26 +158,25 @@ public class DdsCommands implements ShellDependent {
         else {
             System.err.println("resource focus failed (" + response.getStatus() + ")");
         }
+        response.close();
     }
 
     @Command(description="Dump DDS collection containing detailed document and subscription information.")
     public void details() {
         Response response = path.request().accept(NsiConstants.NSI_DDS_V1_XML).get();
-        if (response.getStatus() != Response.Status.OK.getStatusCode()) {
+        if (response.getStatus() == Response.Status.OK.getStatusCode()) {
+            CollectionType collection;
+            try (ChunkedInput<CollectionType> chunkedInput = response.readEntity(new GenericType<ChunkedInput<CollectionType>>() {})) {
+                collection = chunkedInput.read();
+            }
+
+            if (collection != null) {
+                System.out.println(DdsParser.getInstance().jaxbToString(factory.createCollection(collection)));
+            }
+        }
+        else {
             System.err.println("list failed (" + response.getStatus() + ")");
-            return;
         }
-
-        final ChunkedInput<CollectionType> chunkedInput = response.readEntity(new GenericType<ChunkedInput<CollectionType>>() {});
-        if (chunkedInput == null) {
-            System.err.println("details returned empty results.");
-            return;
-        }
-
-        CollectionType collection = chunkedInput.read();
-
-        if (collection != null) {
-            System.out.println(DdsParser.getInstance().jaxbToString(factory.createCollection(collection)));
-        }
+        response.close();
     }
 }

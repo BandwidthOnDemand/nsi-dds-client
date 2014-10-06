@@ -37,6 +37,7 @@ public class Operations {
 
         final ChunkedInput<DocumentListType> chunkedInput = response.readEntity(new GenericType<ChunkedInput<DocumentListType>>() {});
         DocumentListType documents = chunkedInput.read();
+        chunkedInput.close();
 
         if (documents != null) {
             for (DocumentType document : documents.getDocument()) {
@@ -48,7 +49,7 @@ public class Operations {
                         System.out.println("type=" + document.getType() + "; id=" + document.getId() + "; version=" + document.getVersion().toString());
                         break;
                     case DOCUMENT:
-                        System.out.println("id=" + document.getId() + "; version=" + document.getVersion().toString());
+                        System.out.println("id=" + document.getId() + "; version=" + document.getVersion().toString() + "; expires=" + document.getExpires().toString());
                         break;
                 }
             }
@@ -60,13 +61,14 @@ public class Operations {
         Response response = path.request().accept(NsiConstants.NSI_DDS_V1_XML).get();
         if (response.getStatus() != Response.Status.OK.getStatusCode()) {
             System.err.println("details failed (" + response.getStatusInfo().getReasonPhrase() + ")");
-            return;
         }
-
-        DocumentType document = response.readEntity(new GenericType<DocumentType>() {});
-        if (document != null) {
-            System.out.println(DdsParser.getInstance().jaxbToString(factory.createDocument(document)));
+        else {
+            DocumentType document = response.readEntity(new GenericType<DocumentType>() {});
+            if (document != null) {
+                System.out.println(DdsParser.getInstance().jaxbToString(factory.createDocument(document)));
+            }
         }
+        response.close();
     }
 
     public void details(String nsaId, String type) throws Exception {
@@ -74,13 +76,14 @@ public class Operations {
         Response response = path.request().accept(NsiConstants.NSI_DDS_V1_XML).get();
         if (response.getStatus() != Response.Status.OK.getStatusCode()) {
             System.err.println("details failed (" + response.getStatusInfo().getReasonPhrase() + ")");
-            return;
         }
-
-        DocumentListType documents = response.readEntity(new GenericType<DocumentListType>() {});
-        if (documents != null) {
-            System.out.println(DdsParser.getInstance().jaxbToString(factory.createDocuments(documents)));
+        else {
+            DocumentListType documents = response.readEntity(new GenericType<DocumentListType>() {});
+            if (documents != null) {
+                System.out.println(DdsParser.getInstance().jaxbToString(factory.createDocuments(documents)));
+            }
         }
+        response.close();
     }
 
     public void details(String nsaId) throws Exception {
@@ -88,25 +91,28 @@ public class Operations {
         Response response = path.request().accept(NsiConstants.NSI_DDS_V1_XML).get();
         if (response.getStatus() != Response.Status.OK.getStatusCode()) {
             System.err.println("details failed (" + response.getStatusInfo().getReasonPhrase() + ")");
-            return;
         }
-
-        DocumentListType documents = response.readEntity(new GenericType<DocumentListType>() {});
-        if (documents != null) {
-            System.out.println(DdsParser.getInstance().jaxbToString(factory.createDocuments(documents)));
+        else {
+            DocumentListType documents = response.readEntity(new GenericType<DocumentListType>() {});
+            if (documents != null) {
+                System.out.println(DdsParser.getInstance().jaxbToString(factory.createDocuments(documents)));
+            }
         }
+        response.close();
     }
 
     public void details() throws Exception {
         Response response = target.request().accept(NsiConstants.NSI_DDS_V1_XML).get();
         if (response.getStatus() != Response.Status.OK.getStatusCode()) {
             System.err.println("details failed (" + response.getStatusInfo().getReasonPhrase() + ")");
-            return;
         }
-
-        DocumentListType documents = response.readEntity(new GenericType<DocumentListType>() {});
-        if (documents != null) {
-            System.out.println(DdsParser.getInstance().jaxbToString(factory.createDocuments(documents)));
+        else {
+            DocumentListType documents = response.readEntity(new GenericType<DocumentListType>() {});
+            if (documents != null) {
+                System.out.println(DdsParser.getInstance().jaxbToString(factory.createDocuments(documents)));
+                response.close();
+            }
         }
+        response.close();
     }
 }

@@ -43,40 +43,45 @@ public class Nsa  implements ShellDependent {
         this.theShell = theShell;
     }
 
+    @Command(description="Back to documents context.")
+    public String exit() {
+        int indexOf = target.getUri().getPath().lastIndexOf("/");
+        return target.getUri().getPath().subSequence(0, indexOf).toString();
+    }
+
     @Command(description="List available resource types.")
     public void ls() {
         Response response = target.queryParam("summary", "true").request().accept(NsiConstants.NSI_DDS_V1_XML).get();
         if (response.getStatus() != Response.Status.OK.getStatusCode()) {
             System.err.println("list failed (" + response.getStatus() + ")");
-            return;
         }
+        else {
+            DocumentListType documents;
+            try (ChunkedInput<DocumentListType> chunkedInput = response.readEntity(new GenericType<ChunkedInput<DocumentListType>>() {})) {
+                documents = chunkedInput.read();
+            }
 
-        final ChunkedInput<DocumentListType> chunkedInput = response.readEntity(new GenericType<ChunkedInput<DocumentListType>>() {});
-        if (chunkedInput == null) {
-            System.err.println("list returned empty results.");
-            return;
-        }
-
-        DocumentListType documents = chunkedInput.read();
-
-        Map<String, Integer> map = new HashMap<>();
-        if (documents != null) {
-            for (DocumentType document : documents.getDocument()) {
-                Integer count = map.get(document.getType());
-                if (count == null) {
-                    count = new Integer(1);
-                    map.put(document.getType(), count);
+            Map<String, Integer> map = new HashMap<>();
+            if (documents != null) {
+                for (DocumentType document : documents.getDocument()) {
+                    Integer count = map.get(document.getType());
+                    if (count == null) {
+                        count = new Integer(1);
+                        map.put(document.getType(), count);
+                    }
+                    else {
+                        count++;
+                        map.put(document.getType(), count);
+                    }
                 }
-                else {
-                    count++;
-                    map.put(document.getType(), count);
+                Set<Map.Entry<String, Integer>> entrySet = map.entrySet();
+                for (Map.Entry<String, Integer> entry : entrySet) {
+                    System.out.println(entry.getKey() + " (" + entry.getValue() + ")");
                 }
             }
-            Set<Map.Entry<String, Integer>> entrySet = map.entrySet();
-            for (Map.Entry<String, Integer> entry : entrySet) {
-                System.out.println(entry.getKey() + " (" + entry.getValue() + ")");
-            }
         }
+        
+        response.close();
     }
 
     @Command(description="List summary of all documents for this NSA.")

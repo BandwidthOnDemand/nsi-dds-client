@@ -34,72 +34,72 @@ public class Document  implements ShellDependent {
 
     @Command(description="Back to document type context")
     public String exit() {
-        return "..";
+        int indexOf = target.getUri().getPath().lastIndexOf("/");
+        return target.getUri().getPath().subSequence(0, indexOf).toString();
     }
 
     @Command(description="List summary of all documents.")
     public void ls() {
         System.out.println(target.getUri().toString());
         Response response = target.queryParam("summary", "true").request().accept(NsiConstants.NSI_DDS_V1_XML).get();
-        if (response.getStatus() != Response.Status.OK.getStatusCode()) {
+        if (response.getStatus() == Response.Status.OK.getStatusCode()) {
+            DocumentType document;
+            try (ChunkedInput<DocumentType> chunkedInput = response.readEntity(new GenericType<ChunkedInput<DocumentType>>() {})) {
+                document = chunkedInput.read();
+            }
+
+            if (document != null) {
+                System.out.println("version=" + document.getVersion().toString() + "; expires=" + document.getExpires().toString() + "; href=" + document.getHref());
+            }
+        }
+        else {
             System.err.println("list failed (" + response.getStatus() + ")");
-            return;
         }
-
-        final ChunkedInput<DocumentType> chunkedInput = response.readEntity(new GenericType<ChunkedInput<DocumentType>>() {});
-        DocumentType document = chunkedInput.read();
-
-        if (document != null) {
-            System.out.println("version=" + document.getVersion().toString() + "; expires=" + document.getExpires().toString() + "; href=" + document.getHref());
-        }
+        response.close();
     }
 
     @Command(description="Display for document entry.")
     public void details() {
         Response response = target.request().accept(NsiConstants.NSI_DDS_V1_XML).get();
-        if (response.getStatus() != Response.Status.OK.getStatusCode()) {
-            System.err.println("details failed (" + response.getStatusInfo().getReasonPhrase() + ")");
-            return;
-        }
+        if (response.getStatus() == Response.Status.OK.getStatusCode()) {
+            DocumentType document;
+            try (ChunkedInput<DocumentType> chunkedInput = response.readEntity(new GenericType<ChunkedInput<DocumentType>>() {})) {
+                document = chunkedInput.read();
+            }
 
-        final ChunkedInput<DocumentType> chunkedInput = response.readEntity(new GenericType<ChunkedInput<DocumentType>>() {});
-        if (chunkedInput == null) {
-            System.err.println("details returned empty results.");
-            return;
-        }
-
-        DocumentType document = chunkedInput.read();
-
-        if (document != null) {
-            System.out.println(DdsParser.getInstance().jaxbToString(factory.createDocument(document)));
+            if (document != null) {
+                System.out.println(DdsParser.getInstance().jaxbToString(factory.createDocument(document)));
+            }
+            else {
+                System.err.println("details returned empty results.");
+            }
         }
         else {
-            System.err.println("details returned empty results.");
+            System.err.println("details failed (" + response.getStatusInfo().getReasonPhrase() + ")");
         }
+        response.close();
     }
 
     @Command(description="Delete this document entry.")
     public void delete() {
         Response response = target.request().accept(NsiConstants.NSI_DDS_V1_XML).delete();
-        if (response.getStatus() != Response.Status.OK.getStatusCode()) {
-            System.err.println("delete failed (" + response.getStatusInfo().getReasonPhrase() + ")");
-            return;
-        }
+        if (response.getStatus() == Response.Status.OK.getStatusCode()) {
+            DocumentType document;
+            try (ChunkedInput<DocumentType> chunkedInput = response.readEntity(new GenericType<ChunkedInput<DocumentType>>() {})) {
+                document = chunkedInput.read();
+            }
 
-        final ChunkedInput<DocumentType> chunkedInput = response.readEntity(new GenericType<ChunkedInput<DocumentType>>() {});
-        if (chunkedInput == null) {
-            System.err.println("details returned empty results.");
-            return;
-        }
-
-        DocumentType document = chunkedInput.read();
-
-        if (document != null) {
-            System.out.println("sucessfully deleted " + document.getId());
-            System.out.println(DdsParser.getInstance().jaxbToString(factory.createDocument(document)));
+            if (document != null) {
+                System.out.println("sucessfully deleted " + document.getId());
+                System.out.println(DdsParser.getInstance().jaxbToString(factory.createDocument(document)));
+            }
+            else {
+                System.err.println("details returned empty results.");
+            }
         }
         else {
-            System.err.println("details returned empty results.");
+            System.err.println("delete failed (" + response.getStatusInfo().getReasonPhrase() + ")");
         }
+        response.close();
     }
 }

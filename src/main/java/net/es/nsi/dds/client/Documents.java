@@ -42,6 +42,12 @@ public class Documents implements ShellDependent {
         this.theShell = theShell;
     }
 
+    @Command(description="Back to root context.")
+    public String exit() {
+        int indexOf = target.getUri().getPath().lastIndexOf("/");
+        return target.getUri().getPath().subSequence(0, indexOf).toString();
+    }
+
     @Command(description="List available resource types.")
     public void ls() {
         Response response = target.queryParam("summary", "true").request().accept(NsiConstants.NSI_DDS_V1_XML).get();
@@ -57,6 +63,7 @@ public class Documents implements ShellDependent {
         }
 
         DocumentListType documents = chunkedInput.read();
+        chunkedInput.close();
 
         Map<String, Integer> map = new HashMap<>();
         if (documents != null) {
@@ -136,16 +143,39 @@ public class Documents implements ShellDependent {
 
     @Command(description="Set NSA context.")
     public void cd(@Param(name="nsaId", description="NSA identifier of focus.") String nsaId) throws IOException {
-        WebTarget path = target.path(nsaId);
-        Response response = path.queryParam("summary", "true").request().accept(NsiConstants.NSI_DDS_V1_XML).get();
-        if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-            ShellFactory.createSubshell(nsaId, theShell, path.getUri().toString(), new Nsa(nsaId, path)).commandLoop();
+        if (nsaId == null || nsaId.isEmpty()) {
+            System.err.println("cd failed (must specify NSA identifier)");
+            return;
         }
-        else if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
-            System.out.println(nsaId + " not found.");
+        // Confirm that this is a valid NSA identifier.
+        Response response = target.request().accept(NsiConstants.NSI_DDS_V1_XML).get();
+        if (response.getStatus() != Response.Status.OK.getStatusCode()) {
+            System.err.println("cd failed (" + response.getStatusInfo().getReasonPhrase() + ")");
+            response.close();
+            return;
         }
-        else {
-            System.err.println("nsa focus failed (" + response.getStatus() + ")");
+
+        DocumentListType documents = response.readEntity(new GenericType<DocumentListType>() {});
+        response.close();
+
+        for (DocumentType document : documents.getDocument()) {
+            if (nsaId.equalsIgnoreCase(document.getId())) {
+                WebTarget path = target.path(nsaId);
+                response = path.queryParam("summary", "true").request().accept(NsiConstants.NSI_DDS_V1_XML).get();
+                if (response.getStatus() == Response.Status.OK.getStatusCode()) {
+                    ShellFactory.createSubshell(nsaId, theShell, path.getUri().toASCIIString(), new Nsa(nsaId, path)).commandLoop();
+                }
+                else if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
+                    System.out.println(nsaId + " not found.");
+                }
+                else {
+                    System.err.println("nsa focus failed (" + response.getStatus() + ")");
+                }
+                response.close();
+                return;
+            }
         }
+
+        System.out.println(nsaId + " not found.");
     }
 }

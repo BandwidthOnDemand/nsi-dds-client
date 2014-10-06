@@ -1,0 +1,10 @@
+
+/target/
+/config/*.jks
+.settings/
+.classpath
+.project
+nsi-pce.iml
+.idea
+*.iml
+*.swp
