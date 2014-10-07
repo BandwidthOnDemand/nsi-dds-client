@@ -80,7 +80,7 @@ public class Nsa  implements ShellDependent {
                 }
             }
         }
-        
+
         response.close();
     }
 
@@ -99,7 +99,7 @@ public class Nsa  implements ShellDependent {
             @Param(name="type", description="Document type") String type,
             @Param(name="id", description="Document identifier") String id) {
         try {
-            operations.details(nsaId, type, id);
+            operations.details(type, id);
         }
         catch (Exception ex) {
             System.err.println("details failed with exception\n" + ex.getLocalizedMessage());
@@ -110,7 +110,7 @@ public class Nsa  implements ShellDependent {
     public void details(
             @Param(name="type", description="Document type") String type) {
         try {
-            operations.details(nsaId, type);
+            operations.details(type);
         }
         catch (Exception ex) {
             System.err.println("details failed with exception\n" + ex.getLocalizedMessage());
@@ -120,7 +120,7 @@ public class Nsa  implements ShellDependent {
     @Command(description="Get details of all available documents.")
     public void details() {
         try {
-            operations.details(nsaId);
+            operations.details();
         }
         catch (Exception ex) {
             System.err.println("details failed with exception\n" + ex.getLocalizedMessage());

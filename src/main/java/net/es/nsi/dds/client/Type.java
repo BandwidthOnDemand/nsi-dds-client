@@ -24,9 +24,11 @@ import org.glassfish.jersey.client.ChunkedInput;
 public class Type  implements ShellDependent {
     private Shell theShell;
     private WebTarget target;
+    private Operations operations;
 
     public Type(WebTarget target) {
         this.target = target;
+        operations = new Operations(target);
     }
 
     @Override
@@ -84,12 +86,33 @@ public class Type  implements ShellDependent {
         response.close();
     }
 
+    @Command(description="Get details of specific document.")
+    public void details(
+            @Param(name="id", description="Document identifier") String id) {
+        try {
+            operations.details(id);
+        }
+        catch (Exception ex) {
+            System.err.println("details failed with exception\n" + ex.getLocalizedMessage());
+        }
+    }
+
+    @Command(description="Get details of all available documents.")
+    public void details() {
+        try {
+            operations.details();
+        }
+        catch (Exception ex) {
+            System.err.println("details failed with exception\n" + ex.getLocalizedMessage());
+        }
+    }
+
     @Command(description="Set document context.")
     public void cd(@Param(name="id", description="Document identifier of focus.") String id) throws IOException {
         WebTarget path = target.path(id);
         Response response = path.queryParam("summary", "true").request().accept(NsiConstants.NSI_DDS_V1_XML).get();
         if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-            ShellFactory.createSubshell(id, theShell, path.getUri().toASCIIString(), new Document(path)).commandLoop();
+            ShellFactory.createSubshell(id, theShell, path.getUri().toASCIIString(), new Document(id, path)).commandLoop();
         }
         else if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
             System.out.println(id + " not found.");
@@ -111,7 +134,7 @@ public class Type  implements ShellDependent {
 
             if (documents != null && documents.getDocument().size() == 1) {
                 String id = documents.getDocument().get(0).getId();
-                ShellFactory.createSubshell(id, theShell, target.path(id).getUri().toString(), new Document(target.path(id))).commandLoop();
+                ShellFactory.createSubshell(id, theShell, target.path(id).getUri().toString(), new Document(id, target.path(id))).commandLoop();
             }
             else if (documents != null) {
                 System.out.println("cd ambiguous (" + documents.getDocument().size() + ")");

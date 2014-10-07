@@ -27,7 +27,6 @@ import org.glassfish.jersey.client.ChunkedInput;
  * @author hacksaw
  */
 public class Documents implements ShellDependent {
-    private final ObjectFactory factory = new ObjectFactory();
     private Shell theShell;
     private WebTarget target;
     private Operations operations;
@@ -55,15 +54,10 @@ public class Documents implements ShellDependent {
             System.err.println("list failed (" + response.getStatus() + ")");
             return;
         }
-
-        final ChunkedInput<DocumentListType> chunkedInput = response.readEntity(new GenericType<ChunkedInput<DocumentListType>>() {});
-        if (chunkedInput == null) {
-            System.err.println("list returned empty results.");
-            return;
+        DocumentListType documents;
+        try (ChunkedInput<DocumentListType> chunkedInput = response.readEntity(new GenericType<ChunkedInput<DocumentListType>>() {})) {
+            documents = chunkedInput.read();
         }
-
-        DocumentListType documents = chunkedInput.read();
-        chunkedInput.close();
 
         Map<String, Integer> map = new HashMap<>();
         if (documents != null) {
@@ -83,6 +77,8 @@ public class Documents implements ShellDependent {
                 System.out.println(entry.getKey() + " (" + entry.getValue() + ")");
             }
         }
+
+        response.close();
     }
 
     @Command(description="List summary of all documents.")

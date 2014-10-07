@@ -25,93 +25,54 @@ public class Operations {
     }
 
     public enum Level {
-        NSA, TYPE, DOCUMENT
+        NSA, TYPE
     }
 
     public void list(Level level) {
         Response response = target.queryParam("summary", "true").request().accept(NsiConstants.NSI_DDS_V1_XML).get();
-        if (response.getStatus() != Response.Status.OK.getStatusCode()) {
-            System.err.println("list failed (" + response.getStatus() + ")");
-            return;
-        }
+        if (response.getStatus() == Response.Status.OK.getStatusCode()) {
+            DocumentListType documents;
+            try (ChunkedInput<DocumentListType> chunkedInput = response.readEntity(new GenericType<ChunkedInput<DocumentListType>>() {})) {
+                documents = chunkedInput.read();
+            }
 
-        final ChunkedInput<DocumentListType> chunkedInput = response.readEntity(new GenericType<ChunkedInput<DocumentListType>>() {});
-        DocumentListType documents = chunkedInput.read();
-        chunkedInput.close();
-
-        if (documents != null) {
-            for (DocumentType document : documents.getDocument()) {
-                switch (level) {
-                    case NSA:
-                        System.out.println("nsa=" + document.getNsa() + "; type=" + document.getType() + "id=" + document.getId() + "; version=" + document.getVersion().toString());
-                        break;
-                    case TYPE:
-                        System.out.println("type=" + document.getType() + "; id=" + document.getId() + "; version=" + document.getVersion().toString());
-                        break;
-                    case DOCUMENT:
-                        System.out.println("id=" + document.getId() + "; version=" + document.getVersion().toString() + "; expires=" + document.getExpires().toString());
-                        break;
+            if (documents != null) {
+                for (DocumentType document : documents.getDocument()) {
+                    switch (level) {
+                        case NSA:
+                            System.out.println("nsa=" + document.getNsa() + "; type=" + document.getType() + "id=" + document.getId() + "; version=" + document.getVersion().toString());
+                            break;
+                        case TYPE:
+                            System.out.println("type=" + document.getType() + "; id=" + document.getId() + "; version=" + document.getVersion().toString());
+                            break;
+                    }
                 }
             }
         }
-    }
-
-    public void details(String nsaId, String type, String id) throws Exception {
-        WebTarget path = target.path(nsaId).path(type).path(id);
-        Response response = path.request().accept(NsiConstants.NSI_DDS_V1_XML).get();
-        if (response.getStatus() != Response.Status.OK.getStatusCode()) {
-            System.err.println("details failed (" + response.getStatusInfo().getReasonPhrase() + ")");
-        }
         else {
-            DocumentType document = response.readEntity(new GenericType<DocumentType>() {});
-            if (document != null) {
-                System.out.println(DdsParser.getInstance().jaxbToString(factory.createDocument(document)));
-            }
+            System.err.println("list failed (" + response.getStatus() + ")");
         }
         response.close();
     }
 
-    public void details(String nsaId, String type) throws Exception {
-        WebTarget path = target.path(nsaId).path(type);
-        Response response = path.request().accept(NsiConstants.NSI_DDS_V1_XML).get();
-        if (response.getStatus() != Response.Status.OK.getStatusCode()) {
-            System.err.println("details failed (" + response.getStatusInfo().getReasonPhrase() + ")");
+    public void details(String... segment) throws Exception {
+        WebTarget wt = target;
+        for (String path : segment) {
+            wt = wt.path(path.trim());
         }
-        else {
-            DocumentListType documents = response.readEntity(new GenericType<DocumentListType>() {});
-            if (documents != null) {
-                System.out.println(DdsParser.getInstance().jaxbToString(factory.createDocuments(documents)));
-            }
-        }
-        response.close();
-    }
 
-    public void details(String nsaId) throws Exception {
-        WebTarget path = target.path(nsaId);
-        Response response = path.request().accept(NsiConstants.NSI_DDS_V1_XML).get();
-        if (response.getStatus() != Response.Status.OK.getStatusCode()) {
-            System.err.println("details failed (" + response.getStatusInfo().getReasonPhrase() + ")");
-        }
-        else {
-            DocumentListType documents = response.readEntity(new GenericType<DocumentListType>() {});
+        Response response = wt.request().accept(NsiConstants.NSI_DDS_V1_XML).get();
+        if (response.getStatus() == Response.Status.OK.getStatusCode()) {
+            DocumentListType documents;
+            try (ChunkedInput<DocumentListType> chunkedInput = response.readEntity(new GenericType<ChunkedInput<DocumentListType>>() {})) {
+                documents = chunkedInput.read();
+            }
             if (documents != null) {
                 System.out.println(DdsParser.getInstance().jaxbToString(factory.createDocuments(documents)));
             }
         }
-        response.close();
-    }
-
-    public void details() throws Exception {
-        Response response = target.request().accept(NsiConstants.NSI_DDS_V1_XML).get();
-        if (response.getStatus() != Response.Status.OK.getStatusCode()) {
-            System.err.println("details failed (" + response.getStatusInfo().getReasonPhrase() + ")");
-        }
         else {
-            DocumentListType documents = response.readEntity(new GenericType<DocumentListType>() {});
-            if (documents != null) {
-                System.out.println(DdsParser.getInstance().jaxbToString(factory.createDocuments(documents)));
-                response.close();
-            }
+            System.err.println("details failed (" + response.getStatusInfo().getReasonPhrase() + ")");
         }
         response.close();
     }
