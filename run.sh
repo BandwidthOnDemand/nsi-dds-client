@@ -32,4 +32,3 @@ java -Xmx1536m -XX:MaxPermSize=256m -Djava.net.preferIPv4Stack=true  \
 	-dds https://nsi-aggr-west.es.net/discovery \
 	$*
 
-	#-dds http://67.55.28.116:8400/discovery \
