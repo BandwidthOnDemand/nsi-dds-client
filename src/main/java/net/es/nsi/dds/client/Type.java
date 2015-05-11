@@ -21,7 +21,7 @@ import org.glassfish.jersey.client.ChunkedInput;
  *
  * @author hacksaw
  */
-public class Type  implements ShellDependent {
+public class Type implements ShellDependent, Commands {
     private Shell theShell;
     private WebTarget target;
     private Operations operations;
@@ -43,6 +43,7 @@ public class Type  implements ShellDependent {
     }
 
     @Command(description="List identifiers of all documents for this NSA and type.")
+    @Override
     public void ls() {
         Response response = target.queryParam("summary", "true").request().accept(NsiConstants.NSI_DDS_V1_XML).get();
         if (response.getStatus() == Response.Status.OK.getStatusCode()) {
@@ -63,6 +64,7 @@ public class Type  implements ShellDependent {
     }
 
     @Command(description="List summary of all documents for this NSA and type.")
+    @Override
     public void list() {
         Response response = target.queryParam("summary", "true").request().accept(NsiConstants.NSI_DDS_V1_XML).get();
         if (response.getStatus() == Response.Status.OK.getStatusCode()) {
@@ -87,8 +89,7 @@ public class Type  implements ShellDependent {
     }
 
     @Command(description="Get details of specific document.")
-    public void details(
-            @Param(name="id", description="Document identifier") String id) {
+    public void details(@Param(name="id", description="Document identifier") String id) {
         try {
             operations.details(id);
         }
@@ -98,6 +99,7 @@ public class Type  implements ShellDependent {
     }
 
     @Command(description="Get details of all available documents.")
+    @Override
     public void details() {
         try {
             operations.details();
@@ -107,12 +109,17 @@ public class Type  implements ShellDependent {
         }
     }
 
+    @Override
+    public void delete() {
+        System.err.println("Delete not supported on this resource.");
+    }
+
     @Command(description="Set document context.")
     public void cd(@Param(name="id", description="Document identifier of focus.") String id) throws IOException {
         WebTarget path = target.path(id);
         Response response = path.queryParam("summary", "true").request().accept(NsiConstants.NSI_DDS_V1_XML).get();
         if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-            ShellFactory.createSubshell(id, theShell, path.getUri().toASCIIString(), new Document(id, path)).commandLoop();
+            ShellFactory.createSubshell(id, theShell, path.getUri().toASCIIString(), new Document(path)).commandLoop();
         }
         else if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
             System.out.println(id + " not found.");
@@ -134,7 +141,7 @@ public class Type  implements ShellDependent {
 
             if (documents != null && documents.getDocument().size() == 1) {
                 String id = documents.getDocument().get(0).getId();
-                ShellFactory.createSubshell(id, theShell, target.path(id).getUri().toString(), new Document(id, target.path(id))).commandLoop();
+                ShellFactory.createSubshell(id, theShell, target.path(id).getUri().toString(), new Document(target.path(id))).commandLoop();
             }
             else if (documents != null) {
                 System.out.println("cd ambiguous (" + documents.getDocument().size() + ")");

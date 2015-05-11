@@ -18,14 +18,12 @@ import org.glassfish.jersey.client.ChunkedInput;
  *
  * @author hacksaw
  */
-public class Subscription  implements ShellDependent {
-    private static ObjectFactory factory = new ObjectFactory();
+public class Subscription implements ShellDependent, Commands {
+    private static final ObjectFactory factory = new ObjectFactory();
     private Shell theShell;
-    private String id;
-    private WebTarget target;
+    private final WebTarget target;
 
-    public Subscription(String id, WebTarget target) {
-        this.id = id;
+    public Subscription(WebTarget target) {
         this.target = target;
     }
 
@@ -40,8 +38,15 @@ public class Subscription  implements ShellDependent {
         return target.getUri().getPath().subSequence(0, indexOf).toString();
     }
 
-    @Command(description="List summary of subscription.")
+    @Command(description="List summary of this subscription.")
+    @Override
     public void ls() {
+        list();
+    }
+
+    @Command(description="List summary of this subscription.")
+    @Override
+    public void list() {
         System.out.println(target.getUri().toString());
         Response response = target.request().accept(NsiConstants.NSI_DDS_V1_XML).get();
         if (response.getStatus() == Response.Status.OK.getStatusCode()) {
@@ -61,6 +66,7 @@ public class Subscription  implements ShellDependent {
     }
 
     @Command(description="Display subscription entry.")
+    @Override
     public void details() {
         Response response = target.request().accept(NsiConstants.NSI_DDS_V1_XML).get();
         if (response.getStatus() == Response.Status.OK.getStatusCode()) {
@@ -70,7 +76,7 @@ public class Subscription  implements ShellDependent {
             }
 
             if (subscription != null) {
-                System.out.println(DdsParser.getInstance().jaxbToString(factory.createSubscription(subscription)));
+                System.out.println(Parser.getInstance().jaxbToString(factory.createSubscription(subscription)));
             }
             else {
                 System.err.println("details returned empty results.");
@@ -83,6 +89,7 @@ public class Subscription  implements ShellDependent {
     }
 
     @Command(description="Delete this subscription entry.")
+    @Override
     public void delete() {
         Response response = target.request().accept(NsiConstants.NSI_DDS_V1_XML).delete();
         if (response.getStatus() == Response.Status.OK.getStatusCode()) {
@@ -93,7 +100,7 @@ public class Subscription  implements ShellDependent {
 
             if (subscription != null) {
                 System.out.println("sucessfully deleted " + subscription.getId());
-                System.out.println(DdsParser.getInstance().jaxbToString(factory.createSubscription(subscription)));
+                System.out.println(Parser.getInstance().jaxbToString(factory.createSubscription(subscription)));
             }
             else {
                 System.err.println("delete returned empty results.");

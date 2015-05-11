@@ -20,7 +20,7 @@ KEYSTORE=$BASEDIR/config/keystore.jks
 TRUSTSTORE=$BASEDIR/config/truststore.jks
 PASSWORD="changeit"
 
-java -Xmx1536m -XX:MaxPermSize=256m -Djava.net.preferIPv4Stack=true  \
+java -Xmx1536m -Djava.net.preferIPv4Stack=true  \
 	-Dapp.home="$BASEDIR" \
 	-Dbasedir="$BASEDIR" \
 	-Dcom.sun.xml.bind.v2.runtime.JAXBContextImpl.fastBoot=true \
@@ -29,6 +29,5 @@ java -Xmx1536m -XX:MaxPermSize=256m -Djava.net.preferIPv4Stack=true  \
         -Djavax.net.ssl.trustStore=$TRUSTSTORE \
         -Djavax.net.ssl.trustStorePassword=$PASSWORD \
 	-jar target/ddscmd.jar \
-	-dds https://nsi-aggr-west.es.net/discovery \
-	$*
-
+	-server https://nsi-aggr-west.es.net/discovery \
+        -shell $*

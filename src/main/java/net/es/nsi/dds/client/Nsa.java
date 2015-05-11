@@ -18,22 +18,18 @@ import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
 import net.es.nsi.dds.api.jaxb.DocumentListType;
 import net.es.nsi.dds.api.jaxb.DocumentType;
-import net.es.nsi.dds.api.jaxb.ObjectFactory;
 import org.glassfish.jersey.client.ChunkedInput;
 
 /**
  *
  * @author hacksaw
  */
-public class Nsa  implements ShellDependent {
-    private final ObjectFactory factory = new ObjectFactory();
+public class Nsa  implements ShellDependent, Commands {
     private Shell theShell;
-    private String nsaId;
-    private WebTarget target;
-    private Operations operations;
+    private final WebTarget target;
+    private final Operations operations;
 
-    public Nsa(String nsaId, WebTarget target) {
-        this.nsaId = nsaId;
+    public Nsa(WebTarget target) {
         this.target = target;
         operations = new Operations(target);
     }
@@ -50,6 +46,7 @@ public class Nsa  implements ShellDependent {
     }
 
     @Command(description="List available resource types.")
+    @Override
     public void ls() {
         Response response = target.queryParam("summary", "true").request().accept(NsiConstants.NSI_DDS_V1_XML).get();
         if (response.getStatus() != Response.Status.OK.getStatusCode()) {
@@ -85,6 +82,7 @@ public class Nsa  implements ShellDependent {
     }
 
     @Command(description="List summary of all documents for this NSA.")
+    @Override
     public void list() {
         try {
             operations.list(Operations.Level.TYPE);
@@ -118,6 +116,7 @@ public class Nsa  implements ShellDependent {
     }
 
     @Command(description="Get details of all available documents.")
+    @Override
     public void details() {
         try {
             operations.details();
@@ -125,6 +124,11 @@ public class Nsa  implements ShellDependent {
         catch (Exception ex) {
             System.err.println("details failed with exception\n" + ex.getLocalizedMessage());
         }
+    }
+
+    @Override
+    public void delete() {
+        System.err.println("Delete is not supported on this resource.");
     }
 
     @Command(description="Set type context.")

@@ -68,7 +68,7 @@ public class Operations {
                 documents = chunkedInput.read();
             }
             if (documents != null) {
-                System.out.println(DdsParser.getInstance().jaxbToString(factory.createDocuments(documents)));
+                System.out.println(Parser.getInstance().jaxbToString(factory.createDocuments(documents)));
             }
         }
         else {

@@ -89,6 +89,12 @@
             <artifactId>cliche</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>18.0</version>
+        </dependency>
      </dependencies>
 
     <build>
@@ -147,9 +153,9 @@
                 <version>1.4.4</version>
                 <executions>
                     <execution>
-                        <id>DDSClient</id>
+                        <id>Main</id>
                         <configuration>
-                            <mainClass>net.es.nsi.dds.client.DdsClient</mainClass>
+                            <mainClass>net.es.nsi.dds.client.Main</mainClass>
                             <classifier>onejar</classifier>
                             <filename>ddscmd.jar</filename>
                         </configuration>

@@ -4,7 +4,6 @@
  */
 package net.es.nsi.dds.client;
 
-import asg.cliche.CLIException;
 import asg.cliche.Command;
 import asg.cliche.Param;
 import asg.cliche.Shell;
@@ -19,17 +18,16 @@ import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
 import net.es.nsi.dds.api.jaxb.DocumentListType;
 import net.es.nsi.dds.api.jaxb.DocumentType;
-import net.es.nsi.dds.api.jaxb.ObjectFactory;
 import org.glassfish.jersey.client.ChunkedInput;
 
 /**
  *
  * @author hacksaw
  */
-public class Documents implements ShellDependent {
+public class Documents implements ShellDependent, Commands {
     private Shell theShell;
-    private WebTarget target;
-    private Operations operations;
+    private final WebTarget target;
+    private final Operations operations;
 
     public Documents(WebTarget target) {
         this.target = target;
@@ -48,6 +46,7 @@ public class Documents implements ShellDependent {
     }
 
     @Command(description="List available resource types.")
+    @Override
     public void ls() {
         Response response = target.queryParam("summary", "true").request().accept(NsiConstants.NSI_DDS_V1_XML).get();
         if (response.getStatus() != Response.Status.OK.getStatusCode()) {
@@ -64,7 +63,7 @@ public class Documents implements ShellDependent {
             for (DocumentType document : documents.getDocument()) {
                 Integer count = map.get(document.getNsa());
                 if (count == null) {
-                    count = new Integer(1);
+                    count = 1;
                     map.put(document.getNsa(), count);
                 }
                 else {
@@ -82,6 +81,7 @@ public class Documents implements ShellDependent {
     }
 
     @Command(description="List summary of all documents.")
+    @Override
     public void list() {
         try {
             operations.list(Operations.Level.NSA);
@@ -95,7 +95,7 @@ public class Documents implements ShellDependent {
     public void details(
             @Param(name="nsaId", description="NSA identifier identifier owning document") String nsaId,
             @Param(name="type", description="Document type") String type,
-            @Param(name="id", description="Document identifier") String id) throws CLIException {
+            @Param(name="id", description="Document identifier") String id) {
         try {
             operations.details(nsaId, type, id);
         }
@@ -107,7 +107,7 @@ public class Documents implements ShellDependent {
     @Command(description="Get details of documents of a specific type under an NSA.")
     public void details(
             @Param(name="nsaId", description="NSA identifier identifier owning document") String nsaId,
-            @Param(name="type", description="Document type") String type) throws CLIException {
+            @Param(name="type", description="Document type") String type) {
         try {
             operations.details(nsaId, type);
         }
@@ -118,7 +118,7 @@ public class Documents implements ShellDependent {
 
     @Command(description="Get details of documents under an NSA.")
     public void details(
-            @Param(name="nsaId", description="NSA identifier identifier owning document") String nsaId) throws CLIException {
+            @Param(name="nsaId", description="NSA identifier identifier owning document") String nsaId) {
         try {
             operations.details(nsaId);
         }
@@ -128,13 +128,19 @@ public class Documents implements ShellDependent {
     }
 
     @Command(description="Get details of all available documents.")
-    public void details() throws CLIException {
+    @Override
+    public void details() {
         try {
             operations.details();
         }
         catch (Exception ex) {
             System.err.println("details failed with exception\n" + ex.getLocalizedMessage());
         }
+    }
+
+    @Override
+    public void delete() {
+        System.err.println("Delete not supported on this resource.");
     }
 
     @Command(description="Set NSA context.")
@@ -159,7 +165,7 @@ public class Documents implements ShellDependent {
                 WebTarget path = target.path(nsaId);
                 response = path.queryParam("summary", "true").request().accept(NsiConstants.NSI_DDS_V1_XML).get();
                 if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-                    ShellFactory.createSubshell(nsaId, theShell, path.getUri().toASCIIString(), new Nsa(nsaId, path)).commandLoop();
+                    ShellFactory.createSubshell(nsaId, theShell, path.getUri().toASCIIString(), new Nsa(path)).commandLoop();
                 }
                 else if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
                     System.out.println(nsaId + " not found.");

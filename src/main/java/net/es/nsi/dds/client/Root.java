@@ -26,16 +26,19 @@ import org.glassfish.jersey.client.ChunkedInput;
  *
  * @author hacksaw
  */
-public class DdsCommands implements ShellDependent {
-    private static ObjectFactory factory = new ObjectFactory();
-    private URL ddsURL;
-    private RestClient restClient;
+public class Root implements ShellDependent, Commands {
+    private static final ObjectFactory factory = new ObjectFactory();
+    private final RestClient restClient;
     private WebTarget path;
 
-    public DdsCommands(URL ddsURL, boolean debug) {
-        this.ddsURL = ddsURL;
+    public Root(URL ddsURL, boolean debug) {
         restClient = new RestClient(debug);
         path = restClient.get().target(ddsURL.toString());
+    }
+
+    public Root(RestClient restClient, WebTarget target) {
+        this.restClient = restClient;
+        this.path = target;
     }
 
     private Shell theShell;
@@ -43,6 +46,11 @@ public class DdsCommands implements ShellDependent {
     @Override
     public void cliSetShell(Shell theShell) {
         this.theShell = theShell;
+    }
+
+    @Command(description="Display the DDS server URL.")
+    public void server() {
+        System.out.println(path.getUri().toASCIIString());
     }
 
     @Command(description="Set the DDS server URL.")
@@ -71,6 +79,7 @@ public class DdsCommands implements ShellDependent {
     }
 
     @Command(description="List available resource types.")
+    @Override
     public void ls() {
         Response response = path.queryParam("summary", "true").request().accept(NsiConstants.NSI_DDS_V1_XML).get();
         if (response.getStatus() == Response.Status.OK.getStatusCode()) {
@@ -95,6 +104,7 @@ public class DdsCommands implements ShellDependent {
     }
 
     @Command(description="List summary information for all subscriptions and documents.")
+    @Override
     public void list() {
         Response response = path.queryParam("summary", "true").request().accept(NsiConstants.NSI_DDS_V1_XML).get();
         if (response.getStatus() == Response.Status.OK.getStatusCode()) {
@@ -126,6 +136,31 @@ public class DdsCommands implements ShellDependent {
         response.close();
     }
 
+    @Command(description="Dump DDS collection containing detailed document and subscription information.")
+    @Override
+    public void details() {
+        Response response = path.request().accept(NsiConstants.NSI_DDS_V1_XML).get();
+        if (response.getStatus() == Response.Status.OK.getStatusCode()) {
+            CollectionType collection;
+            try (ChunkedInput<CollectionType> chunkedInput = response.readEntity(new GenericType<ChunkedInput<CollectionType>>() {})) {
+                collection = chunkedInput.read();
+            }
+
+            if (collection != null) {
+                System.out.println(Parser.getInstance().jaxbToString(factory.createCollection(collection)));
+            }
+        }
+        else {
+            System.err.println("list failed (" + response.getStatus() + ")");
+        }
+        response.close();
+    }
+
+    @Override
+    public void delete() {
+        System.err.println("Delete not supported on this resource.");
+    }
+
     @Command(description="Set resource context.")
     public void cd(@Param(name="resource", description="Resource type of focus.") String resource) throws IOException {
         WebTarget target = path.path(resource);
@@ -145,7 +180,7 @@ public class DdsCommands implements ShellDependent {
                 }
 
                 if (documents != null && !documents.getDocument().isEmpty()) {
-                    ShellFactory.createSubshell(resource, theShell, target.getUri().toString(), new Nsa(documents.getDocument().get(0).getNsa(), target)).commandLoop();
+                    ShellFactory.createSubshell(resource, theShell, target.getUri().toString(), new Nsa(target)).commandLoop();
                 }
             }
             else {
@@ -161,22 +196,4 @@ public class DdsCommands implements ShellDependent {
         response.close();
     }
 
-    @Command(description="Dump DDS collection containing detailed document and subscription information.")
-    public void details() {
-        Response response = path.request().accept(NsiConstants.NSI_DDS_V1_XML).get();
-        if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-            CollectionType collection;
-            try (ChunkedInput<CollectionType> chunkedInput = response.readEntity(new GenericType<ChunkedInput<CollectionType>>() {})) {
-                collection = chunkedInput.read();
-            }
-
-            if (collection != null) {
-                System.out.println(DdsParser.getInstance().jaxbToString(factory.createCollection(collection)));
-            }
-        }
-        else {
-            System.err.println("list failed (" + response.getStatus() + ")");
-        }
-        response.close();
-    }
 }

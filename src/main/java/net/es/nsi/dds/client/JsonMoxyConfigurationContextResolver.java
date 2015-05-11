@@ -18,7 +18,7 @@ public class JsonMoxyConfigurationContextResolver implements ContextResolver<Mox
             config.setNamespaceSeparator('.');
             config.setAttributePrefix("@");
             config.setFormattedOutput(true);
-            config.property("jersey.config.client.chunkedEncodingSize", new Integer(8192));
+            config.property("jersey.config.client.chunkedEncodingSize", 8192);
         }
 
         @Override

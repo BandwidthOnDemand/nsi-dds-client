@@ -18,17 +18,13 @@ import org.glassfish.jersey.client.ChunkedInput;
  *
  * @author hacksaw
  */
-public class Document  implements ShellDependent {
-    private static ObjectFactory factory = new ObjectFactory();
+public class Document implements ShellDependent, Commands {
+    private static final ObjectFactory factory = new ObjectFactory();
     private Shell theShell;
-    private String id;
-    private WebTarget target;
-    private Operations operations;
+    private final WebTarget target;
 
-    public Document(String id, WebTarget target) {
-        this.id = id;
+    public Document(WebTarget target) {
         this.target = target;
-        operations = new Operations(target);
     }
 
     @Override
@@ -43,6 +39,7 @@ public class Document  implements ShellDependent {
     }
 
     @Command(description="List summary of document.")
+    @Override
     public void ls() {
         System.out.println(target.getUri().toString());
         Response response = target.queryParam("summary", "true").request().accept(NsiConstants.NSI_DDS_V1_XML).get();
@@ -63,11 +60,13 @@ public class Document  implements ShellDependent {
     }
 
     @Command(description="List summary of document.")
+    @Override
     public void list() {
         ls();
     }
 
     @Command(description="Display document entry.")
+    @Override
     public void details() {
         Response response = target.request().accept(NsiConstants.NSI_DDS_V1_XML).get();
         if (response.getStatus() == Response.Status.OK.getStatusCode()) {
@@ -77,7 +76,7 @@ public class Document  implements ShellDependent {
             }
 
             if (document != null) {
-                System.out.println(DdsParser.getInstance().jaxbToString(factory.createDocument(document)));
+                System.out.println(Parser.getInstance().jaxbToString(factory.createDocument(document)));
             }
             else {
                 System.err.println("details returned empty results.");
@@ -90,6 +89,7 @@ public class Document  implements ShellDependent {
     }
 
     @Command(description="Delete this document entry.")
+    @Override
     public void delete() {
         Response response = target.request().accept(NsiConstants.NSI_DDS_V1_XML).delete();
         if (response.getStatus() == Response.Status.OK.getStatusCode()) {
@@ -100,7 +100,7 @@ public class Document  implements ShellDependent {
 
             if (document != null) {
                 System.out.println("sucessfully deleted " + document.getId());
-                System.out.println(DdsParser.getInstance().jaxbToString(factory.createDocument(document)));
+                System.out.println(Parser.getInstance().jaxbToString(factory.createDocument(document)));
             }
             else {
                 System.err.println("delete returned empty results.");

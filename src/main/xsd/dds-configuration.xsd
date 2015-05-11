@@ -3,9 +3,9 @@
     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
     xmlns:tns="http://schemas.es.net/nsi/2014/03/pce/discovery/configuration">
 
-    <xsd:element name="discovery" type="tns:DiscoveryConfigurationType" />
+    <xsd:element name="discovery" type="tns:DdsConfigurationType" />
 
-    <xsd:complexType name="DiscoveryConfigurationType">
+    <xsd:complexType name="DdsConfigurationType">
         <xsd:annotation>
             <xsd:documentation xml:lang="en">
             </xsd:documentation>

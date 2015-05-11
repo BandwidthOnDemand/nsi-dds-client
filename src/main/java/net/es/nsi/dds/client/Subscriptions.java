@@ -4,7 +4,6 @@
  */
 package net.es.nsi.dds.client;
 
-import asg.cliche.CLIException;
 import asg.cliche.Command;
 import asg.cliche.Param;
 import asg.cliche.Shell;
@@ -23,10 +22,10 @@ import org.glassfish.jersey.client.ChunkedInput;
  *
  * @author hacksaw
  */
-public class Subscriptions implements ShellDependent {
+public class Subscriptions implements ShellDependent, Commands {
     private final ObjectFactory factory = new ObjectFactory();
     private Shell theShell;
-    private WebTarget target;
+    private final WebTarget target;
 
     public Subscriptions(WebTarget target) {
         this.target = target;
@@ -44,9 +43,9 @@ public class Subscriptions implements ShellDependent {
     }
 
     @Command(description="List all subscriptions.")
-    public void ls() throws CLIException {
-        WebTarget path = target.path("subscriptions");
-        Response response = path.queryParam("summary", "true").request().accept(NsiConstants.NSI_DDS_V1_XML).get();
+    @Override
+    public void ls() {
+        Response response = target.queryParam("summary", "true").request().accept(NsiConstants.NSI_DDS_V1_XML).get();
         if (response.getStatus() == Response.Status.OK.getStatusCode()) {
             SubscriptionListType subscriptions;
             try (ChunkedInput<SubscriptionListType> chunkedInput = response.readEntity(new GenericType<ChunkedInput<SubscriptionListType>>() {})) {
@@ -67,9 +66,9 @@ public class Subscriptions implements ShellDependent {
     }
 
     @Command(description="List summary of all subscriptions.")
-    public void list() throws CLIException {
-        WebTarget path = target.path("subscriptions");
-        Response response = path.queryParam("summary", "true").request().accept(NsiConstants.NSI_DDS_V1_XML).get();
+    @Override
+    public void list() {
+        Response response = target.queryParam("summary", "true").request().accept(NsiConstants.NSI_DDS_V1_XML).get();
         if (response.getStatus() == Response.Status.OK.getStatusCode()) {
             SubscriptionListType subscriptions;
             try (ChunkedInput<SubscriptionListType> chunkedInput = response.readEntity(new GenericType<ChunkedInput<SubscriptionListType>>() {})) {
@@ -90,13 +89,13 @@ public class Subscriptions implements ShellDependent {
     }
 
     @Command(description="Get details of subscription.")
-    public void details(@Param(name="id", description="Subscription identifier to show details") String id) throws CLIException {
-        WebTarget path = target.path("subscriptions").path(id);
-        Response response = path.request().accept(NsiConstants.NSI_DDS_V1_JSON).get();
+    public void details(@Param(name="id", description="Subscription identifier to show details") String id) {
+        WebTarget path = target.path(id);
+        Response response = path.request().accept(NsiConstants.NSI_DDS_V1_XML).get();
         if (response.getStatus() == Response.Status.OK.getStatusCode()) {
             SubscriptionType subscription = response.readEntity(new GenericType<SubscriptionType>() {});
             if (subscription != null) {
-                System.out.println(DdsParser.getInstance().jaxbToString(factory.createSubscription(subscription)));
+                System.out.println(Parser.getInstance().jaxbToString(factory.createSubscription(subscription)));
             }
         }
         else {
@@ -106,12 +105,13 @@ public class Subscriptions implements ShellDependent {
     }
 
     @Command(description="Get details of all subscriptions.")
-    public void details() throws Exception {
+    @Override
+    public void details() {
         Response response = target.request().accept(NsiConstants.NSI_DDS_V1_XML).get();
         if (response.getStatus() == Response.Status.OK.getStatusCode()) {
             SubscriptionListType subscriptions = response.readEntity(new GenericType<SubscriptionListType>() {});
             if (subscriptions != null) {
-                System.out.println(DdsParser.getInstance().jaxbToString(factory.createSubscriptions(subscriptions)));
+                System.out.println(Parser.getInstance().jaxbToString(factory.createSubscriptions(subscriptions)));
             }
         }
         else {
@@ -122,12 +122,17 @@ public class Subscriptions implements ShellDependent {
     }
 
     @Command(description="Delete a specific subscription.")
-    public void delete(@Param(name="id", description="Subscription identifier to delete")  String id) throws CLIException {
-        WebTarget path = target.path("subscriptions").path(id);
-        Response response = path.request().accept(NsiConstants.NSI_DDS_V1_JSON).delete();
+    public void delete(@Param(name="id", description="Subscription identifier to delete")  String id) {
+        WebTarget path = target.path(id);
+        Response response = path.request().accept(NsiConstants.NSI_DDS_V1_XML).delete();
         if (response.getStatus() != Response.Status.NO_CONTENT.getStatusCode()) {
             System.err.println("details failed (" + response.getStatusInfo().getReasonPhrase() + ")");
         }
+    }
+
+    @Override
+    public void delete() {
+        System.err.println("Delete not supported on this resource");
     }
 
     @Command(description="Set subscription context.")
@@ -153,7 +158,7 @@ public class Subscriptions implements ShellDependent {
                 WebTarget path = target.path(subscription.getId());
                 response = path.queryParam("summary", "true").request().accept(NsiConstants.NSI_DDS_V1_XML).get();
                 if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-                    ShellFactory.createSubshell(subscription.getId(), theShell, path.getUri().toASCIIString(), new Subscription(subscription.getId(), path)).commandLoop();
+                    ShellFactory.createSubshell(subscription.getId(), theShell, path.getUri().toASCIIString(), new Subscription(path)).commandLoop();
                 }
                 else if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
                     System.out.println(subscriptionId + " not found.");
