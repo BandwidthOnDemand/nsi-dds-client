@@ -22,4 +22,6 @@ Checking connectivity... done.
 
 ## Quickstart Configuration
 
-Open `run.sh` and edit configuration parameters as needed.  The keystore and truststore information is only required if communicating with a secured DDS server.
+Open `shell.sh` or `dds.sh` and edit configuration parameters as needed.  The keystore and truststore information is only required if communicating with a secured DDS server.
+
+`shell.sh` is provide an iteractive shell, while `dds.sh` give an equivalent command line version of the tool.
