@@ -126,6 +126,76 @@ public class Nsa  implements ShellDependent, Commands {
         }
     }
 
+    @Command(description="Decode documents of a specific type under an NSA.")
+    public void decode(
+            @Param(name="type", description="Document type") String type,
+            @Param(name="id", description="Document identifier") String id) {
+        try {
+            operations.decode(type, id);
+        }
+        catch (Exception ex) {
+            System.err.println("decode failed with exception\n" + ex.getLocalizedMessage());
+        }
+    }
+
+    @Command(description="Decode documents of a specific type.")
+    public void decode(
+            @Param(name="type", description="Document type") String type) {
+        try {
+            operations.decode(type);
+        }
+        catch (Exception ex) {
+            System.err.println("decode failed with exception\n" + ex.getLocalizedMessage());
+        }
+    }
+
+
+    @Command(description="Decode of all available documents.")
+    @Override
+    public void decode() {
+        try {
+            operations.decode();
+        }
+        catch (Exception ex) {
+            System.err.println("decode failed with exception\n" + ex.getLocalizedMessage());
+        }
+    }
+
+    @Command(description="Display document contents of a specific type under an NSA.")
+    public void contents(
+            @Param(name="type", description="Document type") String type,
+            @Param(name="id", description="Document identifier") String id) {
+        try {
+            operations.contents(type, id);
+        }
+        catch (Exception ex) {
+            System.err.println("contents failed with exception\n" + ex.getLocalizedMessage());
+        }
+    }
+
+    @Command(description="Display documents of a specific type.")
+    public void contents(
+            @Param(name="type", description="Document type") String type) {
+        try {
+            operations.contents(type);
+        }
+        catch (Exception ex) {
+            System.err.println("contents failed with exception\n" + ex.getLocalizedMessage());
+        }
+    }
+
+
+    @Command(description="Display of all available documents.")
+    @Override
+    public void contents() {
+        try {
+            operations.contents();
+        }
+        catch (Exception ex) {
+            System.err.println("contents failed with exception\n" + ex.getLocalizedMessage());
+        }
+    }
+
     @Override
     public void delete() {
         System.err.println("Delete is not supported on this resource.");

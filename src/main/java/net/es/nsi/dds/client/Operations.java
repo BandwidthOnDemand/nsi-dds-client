@@ -76,4 +76,48 @@ public class Operations {
         }
         response.close();
     }
+
+    public void decode(String... segment) throws Exception {
+        WebTarget wt = target;
+        for (String path : segment) {
+            wt = wt.path(path.trim());
+        }
+
+        Response response = wt.request().accept(NsiConstants.NSI_DDS_V1_XML).get();
+        if (response.getStatus() == Response.Status.OK.getStatusCode()) {
+            DocumentListType documents;
+            try (ChunkedInput<DocumentListType> chunkedInput = response.readEntity(new GenericType<ChunkedInput<DocumentListType>>() {})) {
+                documents = chunkedInput.read();
+            }
+            if (documents != null) {
+                System.out.println(Formatter.documents("Documents:", documents));
+            }
+        }
+        else {
+            System.err.println("decode failed (" + response.getStatusInfo().getReasonPhrase() + ")");
+        }
+        response.close();
+    }
+
+    public void contents(String... segment) throws Exception {
+        WebTarget wt = target;
+        for (String path : segment) {
+            wt = wt.path(path.trim());
+        }
+
+        Response response = wt.request().accept(NsiConstants.NSI_DDS_V1_XML).get();
+        if (response.getStatus() == Response.Status.OK.getStatusCode()) {
+            DocumentListType documents;
+            try (ChunkedInput<DocumentListType> chunkedInput = response.readEntity(new GenericType<ChunkedInput<DocumentListType>>() {})) {
+                documents = chunkedInput.read();
+            }
+            if (documents != null) {
+                System.out.println(Formatter.simpleContent(documents));
+            }
+        }
+        else {
+            System.err.println("contents failed (" + response.getStatusInfo().getReasonPhrase() + ")");
+        }
+        response.close();
+    }
 }

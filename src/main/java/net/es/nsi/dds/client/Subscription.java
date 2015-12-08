@@ -88,6 +88,35 @@ public class Subscription implements ShellDependent, Commands {
         response.close();
     }
 
+    @Command(description="Decode a subscription entry.")
+    @Override
+    public void decode() {
+        Response response = target.request().accept(NsiConstants.NSI_DDS_V1_XML).get();
+        if (response.getStatus() == Response.Status.OK.getStatusCode()) {
+            SubscriptionType subscription;
+            try (ChunkedInput<SubscriptionType> chunkedInput = response.readEntity(new GenericType<ChunkedInput<SubscriptionType>>() {})) {
+                subscription = chunkedInput.read();
+            }
+
+            if (subscription != null) {
+                System.out.println(Formatter.subscription(subscription));
+            }
+            else {
+                System.err.println("decode returned empty results.");
+            }
+        }
+        else {
+            System.err.println("decode failed (" + response.getStatusInfo().getReasonPhrase() + ")");
+        }
+        response.close();
+    }
+
+    @Command(description="Display contents of subscription entry.")
+    @Override
+    public void contents() {
+        details();
+    }
+
     @Command(description="Delete this subscription entry.")
     @Override
     public void delete() {

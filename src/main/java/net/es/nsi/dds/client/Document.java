@@ -88,6 +88,52 @@ public class Document implements ShellDependent, Commands {
         response.close();
     }
 
+    @Command(description="Decode document entry.")
+    @Override
+    public void decode() {
+        Response response = target.request().accept(NsiConstants.NSI_DDS_V1_XML).get();
+        if (response.getStatus() == Response.Status.OK.getStatusCode()) {
+            DocumentType document;
+            try (ChunkedInput<DocumentType> chunkedInput = response.readEntity(new GenericType<ChunkedInput<DocumentType>>() {})) {
+                document = chunkedInput.read();
+            }
+
+            if (document != null) {
+                System.out.println(Formatter.document(document));
+            }
+            else {
+                System.err.println("decode returned empty results.");
+            }
+        }
+        else {
+            System.err.println("decode failed (" + response.getStatusInfo().getReasonPhrase() + ")");
+        }
+        response.close();
+    }
+
+    @Command(description="Display contents of document entry.")
+    @Override
+    public void contents() {
+        Response response = target.request().accept(NsiConstants.NSI_DDS_V1_XML).get();
+        if (response.getStatus() == Response.Status.OK.getStatusCode()) {
+            DocumentType document;
+            try (ChunkedInput<DocumentType> chunkedInput = response.readEntity(new GenericType<ChunkedInput<DocumentType>>() {})) {
+                document = chunkedInput.read();
+            }
+
+            if (document != null) {
+                System.out.println(Formatter.simpleContent(document));
+            }
+            else {
+                System.err.println("contents returned empty results.");
+            }
+        }
+        else {
+            System.err.println("contents failed (" + response.getStatusInfo().getReasonPhrase() + ")");
+        }
+        response.close();
+    }
+
     @Command(description="Delete this document entry.")
     @Override
     public void delete() {

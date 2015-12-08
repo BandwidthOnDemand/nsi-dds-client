@@ -23,8 +23,8 @@ import org.glassfish.jersey.client.ChunkedInput;
  */
 public class Type implements ShellDependent, Commands {
     private Shell theShell;
-    private WebTarget target;
-    private Operations operations;
+    private final WebTarget target;
+    private final Operations operations;
 
     public Type(WebTarget target) {
         this.target = target;
@@ -106,6 +106,48 @@ public class Type implements ShellDependent, Commands {
         }
         catch (Exception ex) {
             System.err.println("details failed with exception\n" + ex.getLocalizedMessage());
+        }
+    }
+
+    @Command(description="Decode a specific document.")
+    public void decode(@Param(name="id", description="Document identifier") String id) {
+        try {
+            operations.decode(id);
+        }
+        catch (Exception ex) {
+            System.err.println("decode failed with exception\n" + ex.getLocalizedMessage());
+        }
+    }
+
+    @Command(description="Decode all available documents.")
+    @Override
+    public void decode() {
+        try {
+            operations.decode();
+        }
+        catch (Exception ex) {
+            System.err.println("decode failed with exception\n" + ex.getLocalizedMessage());
+        }
+    }
+
+    @Command(description="Display contents of a specific document.")
+    public void contents(@Param(name="id", description="Document identifier") String id) {
+        try {
+            operations.contents(id);
+        }
+        catch (Exception ex) {
+            System.err.println("decode failed with exception\n" + ex.getLocalizedMessage());
+        }
+    }
+
+    @Command(description="Display contents of all available documents.")
+    @Override
+    public void contents() {
+        try {
+            operations.contents();
+        }
+        catch (Exception ex) {
+            System.err.println("decode failed with exception\n" + ex.getLocalizedMessage());
         }
     }
 

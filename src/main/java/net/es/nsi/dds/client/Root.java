@@ -151,7 +151,48 @@ public class Root implements ShellDependent, Commands {
             }
         }
         else {
-            System.err.println("list failed (" + response.getStatus() + ")");
+            System.err.println("details failed (" + response.getStatus() + ")");
+        }
+        response.close();
+    }
+
+
+    @Command(description="Dump and decode DDS collection containing detailed document and subscription information.")
+    @Override
+    public void decode() {
+        Response response = path.request().accept(NsiConstants.NSI_DDS_V1_XML).get();
+        if (response.getStatus() == Response.Status.OK.getStatusCode()) {
+            CollectionType collection;
+            try (ChunkedInput<CollectionType> chunkedInput = response.readEntity(new GenericType<ChunkedInput<CollectionType>>() {})) {
+                collection = chunkedInput.read();
+            }
+
+            if (collection != null) {
+                System.out.println(Formatter.collection(collection));
+            }
+        }
+        else {
+            System.err.println("decode failed (" + response.getStatus() + ")");
+        }
+        response.close();
+    }
+
+    @Command(description="Dump contents of documents and subscription information.")
+    @Override
+    public void contents() {
+        Response response = path.request().accept(NsiConstants.NSI_DDS_V1_XML).get();
+        if (response.getStatus() == Response.Status.OK.getStatusCode()) {
+            CollectionType collection;
+            try (ChunkedInput<CollectionType> chunkedInput = response.readEntity(new GenericType<ChunkedInput<CollectionType>>() {})) {
+                collection = chunkedInput.read();
+            }
+
+            if (collection != null) {
+                System.out.println(Formatter.simpleContent(collection));
+            }
+        }
+        else {
+            System.err.println("contents failed (" + response.getStatus() + ")");
         }
         response.close();
     }

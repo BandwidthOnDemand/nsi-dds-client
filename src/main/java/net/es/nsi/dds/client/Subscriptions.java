@@ -121,6 +121,50 @@ public class Subscriptions implements ShellDependent, Commands {
         response.close();
     }
 
+    @Command(description="Decocde details of subscription.")
+    public void decode(@Param(name="id", description="Subscription identifier to show details") String id) {
+        WebTarget path = target.path(id);
+        Response response = path.request().accept(NsiConstants.NSI_DDS_V1_XML).get();
+        if (response.getStatus() == Response.Status.OK.getStatusCode()) {
+            SubscriptionType subscription = response.readEntity(new GenericType<SubscriptionType>() {});
+            if (subscription != null) {
+                System.out.println(Formatter.subscription(subscription));
+            }
+        }
+        else {
+            System.err.println("decode failed (" + response.getStatusInfo().getReasonPhrase() + ")");
+        }
+        response.close();
+    }
+
+    @Command(description="Decode all subscriptions.")
+    @Override
+    public void decode() {
+        Response response = target.request().accept(NsiConstants.NSI_DDS_V1_XML).get();
+        if (response.getStatus() == Response.Status.OK.getStatusCode()) {
+            SubscriptionListType subscriptions = response.readEntity(new GenericType<SubscriptionListType>() {});
+            if (subscriptions != null) {
+                System.out.println(Formatter.subscriptions(subscriptions));
+            }
+        }
+        else {
+            System.err.println("decode failed (" + response.getStatusInfo().getReasonPhrase() + ")");
+        }
+
+        response.close();
+    }
+
+    @Command(description="Display details of a subscription.")
+    public void contents(@Param(name="id", description="Subscription identifier to show details") String id) {
+        details(id);
+    }
+
+    @Command(description="Display details for all subscriptions.")
+    @Override
+    public void contents() {
+        details();
+    }
+
     @Command(description="Delete a specific subscription.")
     public void delete(@Param(name="id", description="Subscription identifier to delete")  String id) {
         WebTarget path = target.path(id);

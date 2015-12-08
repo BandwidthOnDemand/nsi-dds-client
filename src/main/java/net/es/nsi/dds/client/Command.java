@@ -8,6 +8,8 @@ public enum Command {
     LS("ls", "List summary of resources."),
     LIST("list", "Detailed list summary of resources."),
     DETAILS("details", "Details of resources."),
+    DECODE("decode", "Decode resource."),
+    CONTENTS("contents", "Display contents of resource."),
     DELETE("delete", "Delete resource.");
 
     private final String name;

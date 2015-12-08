@@ -138,6 +138,100 @@ public class Documents implements ShellDependent, Commands {
         }
     }
 
+    @Command(description="Decode specific document.")
+    public void decode(
+            @Param(name="nsaId", description="NSA identifier identifier owning document") String nsaId,
+            @Param(name="type", description="Document type") String type,
+            @Param(name="id", description="Document identifier") String id) {
+        try {
+            operations.decode(nsaId, type, id);
+        }
+        catch (Exception ex) {
+            System.err.println("details failed with exception\n" + ex.getLocalizedMessage());
+        }
+    }
+
+    @Command(description="Decode documents of a specific type under an NSA and type.")
+    public void decode(
+            @Param(name="nsaId", description="NSA identifier identifier owning document") String nsaId,
+            @Param(name="type", description="Document type") String type) {
+        try {
+            operations.decode(nsaId, type);
+        }
+        catch (Exception ex) {
+            System.err.println("decode failed with exception\n" + ex.getLocalizedMessage());
+        }
+    }
+
+    @Command(description="Decode documents under an NSA.")
+    public void decode(
+            @Param(name="nsaId", description="NSA identifier identifier owning document") String nsaId) {
+        try {
+            operations.decode(nsaId);
+        }
+        catch (Exception ex) {
+            System.err.println("decode failed with exception\n" + ex.getLocalizedMessage());
+        }
+    }
+
+    @Command(description="Decode of all available documents.")
+    @Override
+    public void decode() {
+        try {
+            operations.decode();
+        }
+        catch (Exception ex) {
+            System.err.println("decode failed with exception\n" + ex.getLocalizedMessage());
+        }
+    }
+
+    @Command(description="List contents of a specific document.")
+    public void contents(
+            @Param(name="nsaId", description="NSA identifier identifier owning document") String nsaId,
+            @Param(name="type", description="Document type") String type,
+            @Param(name="id", description="Document identifier") String id) {
+        try {
+            operations.contents(nsaId, type, id);
+        }
+        catch (Exception ex) {
+            System.err.println("details failed with exception\n" + ex.getLocalizedMessage());
+        }
+    }
+
+    @Command(description="List contents of all documents of a specific type under an NSA and type.")
+    public void contents(
+            @Param(name="nsaId", description="NSA identifier identifier owning document") String nsaId,
+            @Param(name="type", description="Document type") String type) {
+        try {
+            operations.contents(nsaId, type);
+        }
+        catch (Exception ex) {
+            System.err.println("contents failed with exception\n" + ex.getLocalizedMessage());
+        }
+    }
+
+    @Command(description="List contents of all documents under an NSA.")
+    public void contents(
+            @Param(name="nsaId", description="NSA identifier identifier owning document") String nsaId) {
+        try {
+            operations.contents(nsaId);
+        }
+        catch (Exception ex) {
+            System.err.println("contents failed with exception\n" + ex.getLocalizedMessage());
+        }
+    }
+
+    @Command(description="List contents of all available documents.")
+    @Override
+    public void contents() {
+        try {
+            operations.contents();
+        }
+        catch (Exception ex) {
+            System.err.println("contents failed with exception\n" + ex.getLocalizedMessage());
+        }
+    }
+
     @Override
     public void delete() {
         System.err.println("Delete not supported on this resource.");
