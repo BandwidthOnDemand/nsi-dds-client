@@ -78,6 +78,7 @@ public class Operations {
     }
 
     public void decode(String... segment) throws Exception {
+        System.out.println("Here: " + segment.length);
         WebTarget wt = target;
         for (String path : segment) {
             wt = wt.path(path.trim());

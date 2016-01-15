@@ -5,6 +5,7 @@
  */
 package net.es.nsi.dds.client;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,6 +43,11 @@ public class DomParser {
         DocumentBuilder builder = factory.newDocumentBuilder();
 
         return builder.parse(is);
+    }
+
+    public static Document xml2Dom(String xml) throws ParserConfigurationException, SAXException, IOException {
+        InputStream stream = new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8));
+        return xml2Dom(stream);
     }
 
     /**

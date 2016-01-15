@@ -175,6 +175,17 @@
                             <goal>one-jar</goal>
                         </goals>
                     </execution>
+                    <execution>
+                        <id>Convert</id>
+                        <configuration>
+                            <mainClass>net.es.nsi.dds.client.Convert</mainClass>
+                            <classifier>onejar</classifier>
+                            <filename>convert.jar</filename>
+                        </configuration>
+                        <goals>
+                            <goal>one-jar</goal>
+                        </goals>
+                    </execution>
                 </executions>
             </plugin>
 

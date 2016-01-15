@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package net.es.nsi.dds.client;
 
 import java.io.IOException;
@@ -146,6 +141,9 @@ public class Formatter {
     }
 
     public static String content(ContentType content) {
+        if (content == null) {
+            return "<null>";
+        }
         StringBuilder sb = new StringBuilder();
         sb.append("contentType=\"");
         sb.append(content.getContentType());
@@ -157,6 +155,7 @@ public class Formatter {
         } catch (IOException | SAXException | RuntimeException ex) {
             sb.append("    Could not decode contents: ");
             sb.append(ex.getLocalizedMessage());
+            System.err.println("\n\n\n\n\nContents: " + content.getValue());
         }
         return sb.toString();
     }
@@ -198,6 +197,7 @@ public class Formatter {
         } catch (IOException | SAXException | RuntimeException ex) {
             sb.append("Could not decode contents: ");
             sb.append(ex.getLocalizedMessage());
+            System.err.println("\n\n\n\n\nContents: " + content.getValue());
         }
         return sb.toString();
     }

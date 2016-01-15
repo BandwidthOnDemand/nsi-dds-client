@@ -29,15 +29,24 @@ public class Decoder {
             contentType = ContentType.TEXT;
         }
 
+        if (Strings.isNullOrEmpty(source)) {
+            return "";
+        }
+
         try {
             InputStream cteis = ContentTransferEncoding.decode(contentTransferEncoding, source);
-            InputStream ctis = ContentType.decode(contentType, cteis);
-            Document decoded = DomParser.xml2Dom(ctis);
-            return DomParser.prettyPrint(decoded);
+            String decoded = ContentType.decode2String(contentType, cteis).trim();
+            if (decoded.startsWith("<?xml")) {
+                Document dom = DomParser.xml2Dom(decoded);
+                return DomParser.prettyPrint(dom);
+            }
+            else {
+                return decoded;
+            }
         } catch (IOException | SAXException ex) {
             throw ex;
         } catch (ParserConfigurationException | TransformerException | MessagingException ex) {
-            throw new RuntimeException(ex);
+            throw new IOException(ex);
         }
     }
 }

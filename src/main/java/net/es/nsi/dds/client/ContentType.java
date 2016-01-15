@@ -7,7 +7,9 @@ package net.es.nsi.dds.client;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 import org.apache.commons.io.IOUtils;
 
 /**
@@ -43,6 +45,15 @@ public class ContentType {
         }
         else {
             return IOUtils.toString(is);
+        }
+    }
+
+    public static OutputStream encode(String contentType, OutputStream os) throws IOException {
+        if (XGZIP.equalsIgnoreCase(contentType)) {
+            return new GZIPOutputStream(os);
+        }
+        else {
+            return os;
         }
     }
 }
