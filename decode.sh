@@ -17,5 +17,5 @@ PRGDIR=`dirname "$PRG"`
 BASEDIR=`cd "$PRGDIR" >/dev/null; pwd`
 
 java -Dcom.sun.xml.bind.v2.runtime.JAXBContextImpl.fastBoot=true \
-	-jar target/convert.jar \
+	-jar target/nsi-dds-client-1.0-SNAPSHOT-Convert.jar \
         -decode $*
