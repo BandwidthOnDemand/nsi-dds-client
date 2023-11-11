@@ -1,7 +1,7 @@
 package net.es.nsi.dds.client;
 
 import java.net.URL;
-import javax.ws.rs.client.WebTarget;
+import jakarta.ws.rs.client.WebTarget;
 
 /**
  *

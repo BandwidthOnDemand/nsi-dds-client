@@ -1,7 +1,7 @@
 package net.es.nsi.dds.client;
 
-import javax.ws.rs.ext.ContextResolver;
-import javax.ws.rs.ext.Provider;
+import jakarta.ws.rs.ext.ContextResolver;
+import jakarta.ws.rs.ext.Provider;
 import org.glassfish.jersey.moxy.json.MoxyJsonConfig;
 
 /**

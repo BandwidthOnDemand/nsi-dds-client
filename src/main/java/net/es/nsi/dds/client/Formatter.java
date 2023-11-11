@@ -2,7 +2,7 @@ package net.es.nsi.dds.client;
 
 import java.io.IOException;
 import java.util.Map;
-import javax.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 import net.es.nsi.dds.api.jaxb.CollectionType;
 import net.es.nsi.dds.api.jaxb.ContentType;
